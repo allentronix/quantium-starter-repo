@@ -210,6 +210,6 @@ Through this project, I gained experience with:
 
 ## Author
 
-Allen M
+Allen M Chijioke
 
-Computer Science Graduate
+
