@@ -6,125 +6,123 @@ import plotly.express as px
 # Load data
 df = pd.read_csv("output.csv")
 
-# Convert Date column to datetime
+# Convert date column
 df["Date"] = pd.to_datetime(df["Date"])
 
-# Sort data by date
+# Sort by date
 df = df.sort_values("Date")
 
 
-# Create initial chart
-fig = px.line(
-    df,
-    x="Date",
-    y="Sales",
-    title="Pink Morsel Sales Over Time",
-    labels={
-        "Date": "Date",
-        "Sales": "Total Sales ($)"
-    }
-)
-
-
-# Create Dash application
+# Create Dash app
 app = Dash(__name__)
 
+# Expose Flask server for testing
+server = app.server
 
-# App layout
+
+# Create initial chart
+def create_chart(data, region="all"):
+
+    fig = px.line(
+        data,
+        x="Date",
+        y="Sales",
+        title=f"Pink Morsel Sales - {region.title()}",
+        labels={
+            "Date": "Date",
+            "Sales": "Sales ($)"
+        }
+    )
+
+    return fig
+
+
+# Layout
 app.layout = html.Div(
 
     [
 
         html.H1(
             "Pink Morsel Sales Visualiser",
+            id="header",
             style={
                 "textAlign": "center",
-                "color": "#2c3e50",
                 "fontSize": "40px",
-                "marginBottom": "30px"
+                "color": "#2c3e50"
             }
         ),
 
 
-        html.Div(
-            [
+        dcc.RadioItems(
 
-                html.Label(
-                    "Select Region:",
-                    style={
-                        "fontSize": "20px",
-                        "fontWeight": "bold",
-                        "marginRight": "20px"
-                    }
-                ),
+            id="region-filter",
 
-
-                dcc.RadioItems(
-                    id="region-filter",
-
-                    options=[
-                        {
-                            "label": "North",
-                            "value": "north"
-                        },
-                        {
-                            "label": "East",
-                            "value": "east"
-                        },
-                        {
-                            "label": "South",
-                            "value": "south"
-                        },
-                        {
-                            "label": "West",
-                            "value": "west"
-                        },
-                        {
-                            "label": "All",
-                            "value": "all"
-                        }
-                    ],
-
-                    value="all",
-
-                    inline=True,
-
-                    style={
-                        "display": "flex",
-                        "justifyContent": "center",
-                        "gap": "25px",
-                        "fontSize": "18px"
-                    }
-                )
-
+            options=[
+                {
+                    "label": "North",
+                    "value": "north"
+                },
+                {
+                    "label": "East",
+                    "value": "east"
+                },
+                {
+                    "label": "South",
+                    "value": "south"
+                },
+                {
+                    "label": "West",
+                    "value": "west"
+                },
+                {
+                    "label": "All",
+                    "value": "all"
+                }
             ],
 
+            value="all",
+
+            inline=True,
+
             style={
-                "textAlign": "center",
-                "marginBottom": "40px"
+                "display": "flex",
+                "justifyContent": "center",
+                "gap": "20px",
+                "margin": "30px",
+                "fontSize": "18px"
             }
+
         ),
 
 
         dcc.Graph(
+
             id="sales-chart",
-            figure=fig
+
+            figure=create_chart(df)
+
         )
 
     ],
 
 
     style={
-        "backgroundColor": "#f4f6f7",
+
+        "backgroundColor": "#f5f6fa",
+
         "minHeight": "100vh",
-        "padding": "40px",
+
+        "padding": "30px",
+
         "fontFamily": "Arial"
+
     }
 
 )
 
 
-# Callback to update graph when region changes
+
+# Update graph when region changes
 @app.callback(
 
     Output(
@@ -138,12 +136,12 @@ app.layout = html.Div(
     )
 
 )
+
 def update_chart(selected_region):
 
     filtered_df = df
 
 
-    # Filter by region unless "all" is selected
     if selected_region != "all":
 
         filtered_df = df[
@@ -151,29 +149,13 @@ def update_chart(selected_region):
         ]
 
 
-    # Create updated chart
-    fig = px.line(
-
+    return create_chart(
         filtered_df,
-
-        x="Date",
-
-        y="Sales",
-
-        title=f"Pink Morsel Sales - {selected_region.title()}",
-
-        labels={
-            "Date": "Date",
-            "Sales": "Total Sales ($)"
-        }
-
+        selected_region
     )
 
 
-    return fig
 
-
-
-# Run application
+# Run app
 if __name__ == "__main__":
     app.run(debug=True)
